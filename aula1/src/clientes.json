@@ -1,0 +1,55 @@
+{
+    "clientes": [
+      {
+        "nome": "Empresa Alfa",
+        "CRM1": {
+          "contract_id": "CRM1-12345",
+          "data_inicio": "2021-03-15",
+          "data_fim": "2024-03-15",
+          "plano": "Vale Alimentação Standard",
+          "forma_pagamento": "Boleto",
+          "status": "Ativo"
+        },
+        "CRM2": {
+          "customer_id": "CUST-ALFA-001",
+          "representante": "João Silva",
+          "email": "joao.silva@empresaalfa.com",
+          "num_funcionarios": 150,
+          "valor_contrato": "R$ 20.000,00",
+          "status": "Ativo"
+        },
+        "CRM3": {
+          "account_manager": "Maria Oliveira",
+          "regiao": "Sudeste",
+          "data_renovacao": "2023-12-31",
+          "categoria_contrato": "Corporate",
+          "observacoes": "Contrato em fase de avaliação para upgrade"
+        },
+        "ServiceNow": {
+          "ticket_id": "SN-98765",
+          "data_ticket": "2023-08-10",
+          "status_ticket": "Aberto",
+          "motivo": "Solicitação de cancelamento",
+          "descricao_ticket": "Cliente informou insatisfação com atendimento e deseja cancelar o contrato.",
+          "historico": [
+            {
+              "remetente": "Cliente",
+              "data": "2023-08-10 09:15",
+              "mensagem": "Estou com um problema nos cartões dos colaboradores, não estão mais funcionando."
+            },
+            {
+              "remetente": "Atendente",
+              "data": "2023-08-10 09:30",
+              "mensagem": "Estamos verificando o problema e entraremos em contato em breve com uma solução."
+            },
+            {
+              "remetente": "Cliente",
+              "data": "2023-08-10 10:00",
+              "mensagem": "Aguardo retorno, pois os colaboradores estão sem acesso aos benefícios."
+            }
+          ]
+        }
+      }
+    ]
+  }
+  
