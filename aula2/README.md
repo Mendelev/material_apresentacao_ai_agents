@@ -86,28 +86,39 @@ Ini, TOML
 
 ### --- SELEÇÃO DO PROVEDOR DE LLM ---
 ### Escolha entre "openai" ou "gemini"
+```dotenv
 LLM_PROVIDER="openai"
+```
 
 ### --- CREDENCIAIS DO GOOGLE GEMINI ---
+```dotenv
 GOOGLE_API_KEY="SUA_CHAVE_DE_API_DO_GEMINI"
+```
 
 ### --- CREDENCIAIS DO AZURE OPENAI ---
+```dotenv
 OPENAI_API_KEY="SUA_CHAVE_DE_API_DO_AZURE"
 AZURE_OPENAI_ENDPOINT="https://SEU_[RECURSO.openai.azure.com/](https://RECURSO.openai.azure.com/)"
 OPENAI_API_VERSION="2024-02-01"
 AZURE_OPENAI_DEPLOYMENT_NAME="SEU_NOME_DE_DEPLOYMENT"
+```
 
 ### --- CONEXÃO COM O BANCO DE DADOS POSTGRESQL ---
+```dotenv
 PG_HOST="localhost"
 PG_PORT="5432"
 PG_DATABASE="database-teste"
 PG_USER="myuser"
 PG_PASSWORD="mypassword"
+```
 ### String de conexão completa para SQLAlchemy (usada por db_utils.py)
+```dotenv
 DB_CONNECTION_STRING="postgresql://myuser:mypassword@localhost:5432/database-teste"
-
+```
 ### --- CONEXÃO REDIS (Opcional) ---
+```dotenv
 REDIS_URL="redis://127.0.0.1:6379"
+```
 4. Carga de Dados no Banco
 Antes de iniciar a aplicação, você precisa popular o banco de dados com os dados dos seus arquivos CSV. Utilize o script de ingestão fornecido.
 
@@ -131,6 +142,7 @@ python app.py
 Acesse a aplicação em seu navegador no endereço http://127.0.0.1:8050.
 
 ## 📂 Estrutura do Projeto
+```Bash
 .
 ├── pages/                # Contém as páginas da aplicação Dash (home, etc.)
 │   ├── home.py
@@ -144,6 +156,7 @@ Acesse a aplicação em seu navegador no endereço http://127.0.0.1:8050.
 ├── requirements.txt      # Lista de dependências Python
 ├── .env                  # Arquivo local para armazenar segredos e configurações
 └── README.md             # Este arquivo
+```
 
 ## 🌱 Futuras Melhorias
 Adicionar mais Ferramentas: Permitir ao agente salvar resultados em arquivos ou buscar informações na web para enriquecer as respostas.
