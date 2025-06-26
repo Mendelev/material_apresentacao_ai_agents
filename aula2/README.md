@@ -1,6 +1,6 @@
 # Agente de IA para Análise de Dados com LLMs
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg)
 ![Dash](https://img.shields.io/badge/Dash-2.9-orange.svg)
 ![LangChain](https://img.shields.io/badge/LangChain-0.1-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey.svg)
