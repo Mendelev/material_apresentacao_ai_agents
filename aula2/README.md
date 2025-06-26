@@ -24,14 +24,14 @@ O sistema é orquestrado por um agente Python que segue um fluxo lógico para re
 ```mermaid
 graph TD
     A[👨‍💻 Interface Web - Dash] --> B{🤖 Orquestrador do Agente};
-    B -- Pergunta --> C[🧠 LLM - O Cérebro (OpenAI/Gemini)];
-    C -- Plano (SQL/JSON) --> B;
-    B -- Ação --> D[🛠️ Ferramentas (Executor de SQL)];
+    B -- Pergunta --> C[🧠 LLM - O Cérebro - OpenAI/Gemini];
+    C -- Plano SQL/JSON --> B;
+    B -- Ação --> D[🛠️ Ferramentas Executor de SQL];
     D -- Executa Query --> F[🗄️ Banco de Dados - PostgreSQL];
     F -- Resultado --> D;
     D -- Observação (Dados/Erro) --> B;
     subgraph Contexto
-        E[📚 Base de Conhecimento (table_descriptions.py)]
+        E[📚 Base de Conhecimento - table_descriptions.py]
     end
     E --> C;
 ```
