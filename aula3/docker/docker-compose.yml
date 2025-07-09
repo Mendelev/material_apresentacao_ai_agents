@@ -1,0 +1,14 @@
+services:
+  sftp-server:
+    image: atmoz/sftp:latest
+    container_name: meu_servidor_sftp
+    volumes:
+      - /home/ubuntu/dados_sftp/:/upload # Mapeia o diretório local './dados_sftp' para '/home' dentro do contêiner
+    ports:
+      - "2222:22" # Mapeia a porta 2222 do host para a porta 22 do contêiner
+    command:
+      - "usuario1:dQ8s8DXFkGt5BQ9e:1001:1001:/upload"
+    restart: unless-stopped
+    environment:
+      - SFTP_USERS_ALLOW_PASSWORD_LOGIN=true # Permite login por senha globalmente
+      - SFTP_SERVER_OPTS=-u 0002

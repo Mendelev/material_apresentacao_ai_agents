@@ -1,0 +1,177 @@
+2025-06-03 09:49:04 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 09:49:04 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 09:49:04 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 09:49:04 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 09:49:04 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 09:49:04 - INFO - Nenhum arquivo Excel ou CSV encontrado para processar.
+2025-06-03 09:49:04 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====
+2025-06-03 09:49:17 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 09:49:17 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 09:49:17 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 09:49:17 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 09:49:17 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 09:49:17 - INFO - Arquivos encontrados para potencial processamento: ['PreçoFixo De-Para (1) (1).xlsx']
+2025-06-03 09:49:17 - INFO - Tentando processar: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:49:17 - INFO - Processando arquivo Excel: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:49:17 - INFO - CWD: /home/yuri/fs-agente-vendas/scripts_de_teste, Gravável? True
+2025-06-03 09:49:17 - INFO - Dir Temp: /tmp, Gravável? True
+2025-06-03 09:49:18 - INFO - Arquivo Excel 'PreçoFixo De-Para (1) (1).xlsx' lido. Shape: (800, 22)
+2025-06-03 09:49:18 - INFO - Tipos de dados originais do Excel: 
+Tipo                               object
+Quantidade Testemunhas            float64
+Quantidade Clientes               float64
+Cliente                           float64
+CNPJ/CPF                           object
+Nome Cliente                       object
+Nome Testemunha 1                  object
+Assinatura Testemunha 1            object
+Nome Testemunha 2                  object
+Assinatura Testemunha 2            object
+Nome Cliente 1                     object
+Assinatura Cliente 1               object
+Certificado Digital? Cliente 1     object
+Nome Cliente 2                     object
+Assinatura Cliente 2               object
+Certificado Digital? Cliente 2     object
+Nome Cliente 3                     object
+Assinatura Cliente 3               object
+Certificado Digital? Cliente 3     object
+Nome Cliente 4                    float64
+Assinatura Cliente 4              float64
+Certificado Digital? Cliente 4    float64
+2025-06-03 09:49:18 - INFO - Coluna 'Quantidade Testemunhas' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:49:18 - INFO - Coluna 'Quantidade Clientes' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:49:18 - INFO - Coluna 'Cliente' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:49:18 - INFO - Tipos de dados após tentativa de conversão para Int64: 
+Tipo                               object
+Quantidade Testemunhas              Int64
+Quantidade Clientes                 Int64
+Cliente                             Int64
+CNPJ/CPF                           object
+Nome Cliente                       object
+Nome Testemunha 1                  object
+Assinatura Testemunha 1            object
+Nome Testemunha 2                  object
+Assinatura Testemunha 2            object
+Nome Cliente 1                     object
+Assinatura Cliente 1               object
+Certificado Digital? Cliente 1     object
+Nome Cliente 2                     object
+Assinatura Cliente 2               object
+Certificado Digital? Cliente 2     object
+Nome Cliente 3                     object
+Assinatura Cliente 3               object
+Certificado Digital? Cliente 3     object
+Nome Cliente 4                    float64
+Assinatura Cliente 4              float64
+Certificado Digital? Cliente 4    float64
+2025-06-03 09:49:18 - INFO - Convertido PreçoFixo De-Para (1) (1).xlsx para CSV e salvo como /home/yuri/fs-agente-vendas/scripts_de_teste/precofixo-de-para.csv
+2025-06-03 09:49:18 - INFO - Removido arquivo Excel original: /home/yuri/fs-agente-vendas/scripts_de_teste/PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:49:18 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====
+2025-06-03 09:58:13 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 09:58:13 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 09:58:13 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 09:58:13 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 09:58:13 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 09:58:13 - INFO - Arquivos encontrados para potencial processamento: ['PreçoFixo De-Para (1) (1).xlsx']
+2025-06-03 09:58:13 - INFO - Tentando processar: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:58:13 - INFO - Processando arquivo Excel: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:58:13 - INFO - CWD: /home/yuri/fs-agente-vendas/scripts_de_teste, Gravável? True
+2025-06-03 09:58:13 - INFO - Dir Temp: /tmp, Gravável? True
+2025-06-03 09:58:13 - INFO - Arquivo Excel 'PreçoFixo De-Para (1) (1).xlsx' lido. Shape: (800, 22)
+2025-06-03 09:58:13 - INFO - Tipos de dados originais do Excel: 
+Tipo                               object
+Quantidade Testemunhas            float64
+Quantidade Clientes               float64
+Cliente                           float64
+CNPJ/CPF                           object
+Nome Cliente                       object
+Nome Testemunha 1                  object
+Assinatura Testemunha 1            object
+Nome Testemunha 2                  object
+Assinatura Testemunha 2            object
+Nome Cliente 1                     object
+Assinatura Cliente 1               object
+Certificado Digital? Cliente 1     object
+Nome Cliente 2                     object
+Assinatura Cliente 2               object
+Certificado Digital? Cliente 2     object
+Nome Cliente 3                     object
+Assinatura Cliente 3               object
+Certificado Digital? Cliente 3     object
+Nome Cliente 4                    float64
+Assinatura Cliente 4              float64
+Certificado Digital? Cliente 4    float64
+2025-06-03 09:58:13 - INFO - Coluna 'Quantidade Testemunhas' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:58:13 - INFO - Coluna 'Quantidade Clientes' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:58:13 - INFO - Coluna 'Cliente' em 'PreçoFixo De-Para (1) (1).xlsx' convertida de float para Int64 (inteiro anulável).
+2025-06-03 09:58:13 - INFO - Tipos de dados após tentativa de conversão para Int64: 
+Tipo                               object
+Quantidade Testemunhas              Int64
+Quantidade Clientes                 Int64
+Cliente                             Int64
+CNPJ/CPF                           object
+Nome Cliente                       object
+Nome Testemunha 1                  object
+Assinatura Testemunha 1            object
+Nome Testemunha 2                  object
+Assinatura Testemunha 2            object
+Nome Cliente 1                     object
+Assinatura Cliente 1               object
+Certificado Digital? Cliente 1     object
+Nome Cliente 2                     object
+Assinatura Cliente 2               object
+Certificado Digital? Cliente 2     object
+Nome Cliente 3                     object
+Assinatura Cliente 3               object
+Certificado Digital? Cliente 3     object
+Nome Cliente 4                    float64
+Assinatura Cliente 4              float64
+Certificado Digital? Cliente 4    float64
+2025-06-03 09:58:13 - INFO - Convertido PreçoFixo De-Para (1) (1).xlsx para CSV e salvo como /home/yuri/fs-agente-vendas/scripts_de_teste/precofixo-de-para.csv
+2025-06-03 09:58:13 - INFO - Removido arquivo Excel original: /home/yuri/fs-agente-vendas/scripts_de_teste/PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 09:58:13 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====
+2025-06-03 10:02:57 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 10:02:57 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 10:02:57 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 10:02:57 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 10:02:57 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 10:02:57 - INFO - Arquivos encontrados para potencial processamento: ['precofixo-de-para.csv']
+2025-06-03 10:02:57 - INFO - Tentando processar: precofixo-de-para.csv
+2025-06-03 10:02:57 - INFO - Processando arquivo CSV: precofixo-de-para.csv
+2025-06-03 10:02:57 - INFO - Movido e renomeado precofixo-de-para.csv para /home/yuri/fs-agente-vendas/scripts_de_teste/precofixo-de-para.csv
+2025-06-03 10:02:57 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====
+2025-06-03 10:03:20 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 10:03:20 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 10:03:20 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 10:03:20 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 10:03:20 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 10:03:20 - INFO - Arquivos encontrados para potencial processamento: ['PreçoFixo De-Para (1) (1).xlsx']
+2025-06-03 10:03:20 - INFO - Tentando processar: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:03:20 - INFO - Processando arquivo Excel: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:03:20 - INFO - CWD: /home/yuri/fs-agente-vendas/scripts_de_teste, Gravável? True
+2025-06-03 10:03:20 - INFO - Dir Temp: /tmp, Gravável? True
+2025-06-03 10:03:20 - INFO - Arquivo Excel 'PreçoFixo De-Para (1) (1).xlsx' lido com todos os dados como string. Shape: (800, 22)
+2025-06-03 10:03:20 - INFO - Coluna 'Quantidade Testemunhas' em 'PreçoFixo De-Para (1) (1).xlsx' convertida para Int64 (inteiro anulável).
+2025-06-03 10:03:20 - INFO - Coluna 'Quantidade Clientes' em 'PreçoFixo De-Para (1) (1).xlsx' convertida para Int64 (inteiro anulável).
+2025-06-03 10:03:20 - INFO - Convertido PreçoFixo De-Para (1) (1).xlsx para CSV e salvo como /home/yuri/fs-agente-vendas/scripts_de_teste/precofixo-de-para.csv
+2025-06-03 10:03:20 - INFO - Removido arquivo Excel original: /home/yuri/fs-agente-vendas/scripts_de_teste/PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:03:20 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====
+2025-06-03 10:06:16 - INFO - ==== Script de processamento de arquivos SFTP iniciado ====
+2025-06-03 10:06:16 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): process_files.py
+2025-06-03 10:06:16 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): langchain_agente_vendas.py
+2025-06-03 10:06:16 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): chatbot_com_memoria.py
+2025-06-03 10:06:16 - INFO - Arquivo ignorado (tipo não suportado na varredura inicial): processor.log
+2025-06-03 10:06:16 - INFO - Arquivos encontrados para potencial processamento: ['PreçoFixo De-Para (1) (1).xlsx']
+2025-06-03 10:06:16 - INFO - Tentando processar: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:06:16 - INFO - Processando arquivo Excel: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:06:16 - INFO - CWD: /home/yuri/fs-agente-vendas/scripts_de_teste, Gravável? True
+2025-06-03 10:06:16 - INFO - Dir Temp: /tmp, Gravável? True
+2025-06-03 10:06:16 - INFO - Tentando ler a aba 'E-mails Clientes' do arquivo Excel: PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:06:16 - INFO - Aba 'E-mails Clientes' do Excel 'PreçoFixo De-Para (1) (1).xlsx' lida. Shape (linhas, colunas): (800, 22)
+2025-06-03 10:06:16 - INFO - Número de linhas lidas (DataFrame): 800
+2025-06-03 10:06:16 - INFO - Coluna 'Quantidade Testemunhas' em 'PreçoFixo De-Para (1) (1).xlsx' (aba 'E-mails Clientes') convertida para Int64.
+2025-06-03 10:06:16 - INFO - Coluna 'Quantidade Clientes' em 'PreçoFixo De-Para (1) (1).xlsx' (aba 'E-mails Clientes') convertida para Int64.
+2025-06-03 10:06:16 - INFO - Convertido 'PreçoFixo De-Para (1) (1).xlsx' (aba 'E-mails Clientes') para CSV e salvo como /home/yuri/fs-agente-vendas/scripts_de_teste/precofixo-de-para.csv
+2025-06-03 10:06:16 - INFO - Removido arquivo Excel original: /home/yuri/fs-agente-vendas/scripts_de_teste/PreçoFixo De-Para (1) (1).xlsx
+2025-06-03 10:06:16 - INFO - ==== Script de processamento de arquivos SFTP finalizado ====

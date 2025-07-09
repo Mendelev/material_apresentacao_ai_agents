@@ -1,0 +1,79 @@
+﻿Cond Pagamento,Significado
+ZBTS,Barter Sementes
+ZBTE,Barter Etanol
+ZBTD,Barter DDG
+Z180,180 dias
+Z163,163 dias
+Z150,150 dias
+Z120,120 dias
+Z090,90 dias
+Z060,60 dias
+Z045,45 dias
+Z035,35 dias
+Z030,30 dias
+Z028,28 dias
+Z025,25 dias
+Z021,21 dias
+Z020,20 dias
+Z015,15 dias
+Z014,14 dias
+Z012,12 dias
+Z010,10 dias
+Z007,7 dias
+Z006,6 dias
+Z005,5 dias
+Z003,3 dias
+Z001,1 dia
+Z000,À vista
+X030,dentro de 30 dias s/desconto
+X015,Fixo Dia 15 ou 25 de cada mês
+S155,155 dias com pagamento no 3º dia do mês
+S150,150 dias com pagamento no 3º dia do mês
+S120,120 dias com pagamento no 3º dia do mês
+S090,90 dias com pagamento no 3º dia do mês
+S070,70 dias com pagamento no 3º dia do mês
+S060,60 dias com pagamento no 3º dia do mês
+S005,Semanal + 5 dias
+S003,Semanal + 3
+S002,Semanal + 2
+P159,30%-45d | 20%-60D | 40%-120D | 10%-180D
+P118,"3 parcelas em 25, 35, 45 dias"
+P025,"35,49,56 dias"
+P004,"28,56 dias"
+M095,Fixo dia 5 fora mês (95 dias)
+M070,Fixo dia 5 fora mês (70 dias)
+M065,Fixo dia 5 fora mês (65 dias)
+M055,Fixo dia 25 fora mês (55 dias)
+M050,Fixo dia 20 fora mês (50 dias)
+M045,Fixo dia 15 fora mês (45 dias)
+M040,Fixo dia 10 fora mês (40 dias)
+M035,Fixo dia 5 fora mês (35 dias)
+M031,Fixo Dia 01 fora mês (31 dias)
+M030,Fixo Dia 05 ou 20 fora mês
+M020,Fixo Dia 20 fora mês
+M015,Fixo Dia 15 fora mês
+M010,Fixo Dia 10 fora mês
+M005,Fixo Dia 05 fora mês
+F155,155 Dias com pagamento no 7 dia do mês
+F150,150 Dias com pagamento no 7 dia do mês
+F120,120 Dias com pagamento no 7 dia do mês
+F090,90 Dias com pagamento no 7 dia do mês
+F030,Fixo Dia 30 de cada mês
+F025,Fixo Dia 25 de cada mês
+F020,Fixo Dia 20 de cada mês
+F015,Fixo Dia 15 de cada mês
+F010,Fixo Dia 10 de cada mês
+F005,Fixo Dia 05 de cada mês
+D015,Decendial + 15
+D010,Decendial + 10
+D007,Decendial + 7
+D005,Decendial + 5
+D002,Decendial + 2
+,Fixo Dia 05 de cada mês
+,Fixo Dia 10 de cada mês
+,Fixo Dia 15 de cada mês
+,Fixo Dia 20 de cada mês
+,Fixo Dia 25 de cada mês
+,Fixo Dia 30 de cada mês
+,Fixo Dia 05 ou 20 fora mês
+,Fixo Dia 05 ou 20 fora mês

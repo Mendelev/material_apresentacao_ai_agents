@@ -1,0 +1,18 @@
+Data da solicitação:21/03/2025
+Número do Vendedor: (xx) xxxxx-xxxx
+Cidade:IPIRANGA DO NORTE - MT
+Planta:LRV
+Nome do cliente:NEIMAR ANTONIO CAOVILLA
+Código do cliente:403748
+Campanha:SEM REF
+Data da negociação:20/03/2025
+Condição de pagamento:Z000
+Forma de pagamento:N
+Incoterms:CIF (se for FOB não precisa do preço frete)
+Preço frete:63
+Preço:1480
+Código do material:300004
+-- Cadência --
+03.2025:40
+04.2025:40
+05.2025:40
