@@ -4,8 +4,9 @@ import sys
 import time
 import logging
 from streamlit_mic_recorder import mic_recorder
-from langchain.memory import ConversationBufferMemory
-from memory.user_profile_manager import UserProfileManager
+from langchain.memory import ConversationBufferWindowMemory
+
+from memory.memory_manager import MemoryManager
 
 logger = logging.getLogger(__name__) 
 logging.basicConfig(
@@ -55,36 +56,40 @@ def load_stateless_components():
     except Exception as e:
         st.error(f"Falha ao carregar AudioTranscriber: {e}")
 
-    print("--- Carregando Gerenciador de Perfis (cacheado) ---")
-    user_profile_manager = None
+    print("--- Carregando Gerenciador de Memória (cacheado) ---")
+    memory_manager = None
     try:
         # Adicione MONGO_CONNECTION_STRING ao seu .env
-        mongo_uri = config.MONGO_CONNECTION_STRING 
+        mongo_uri = os.getenv("MONGO_CONNECTION_STRING")
         if mongo_uri:
-            user_profile_manager = UserProfileManager(mongo_uri)
+            memory_manager = MemoryManager(mongo_uri)
         else:
             st.warning("MONGO_CONNECTION_STRING não configurada. Memória de Longo Prazo desabilitada.")
     except Exception as e:
-        st.error(f"Falha ao carregar UserProfileManager: {e}")
+        st.error(f"Falha ao carregar MemoryManager: {e}")
 
-    return extraction_agent, mapping_agent, audio_transcriber, user_profile_manager
+    return extraction_agent, mapping_agent, audio_transcriber, memory_manager
 
 # --- Inicialização do App ---
 st.set_page_config(page_title="Chatbot de Pedidos", layout="wide")
 st.title("🤖 Chatbot de Processamento de Pedidos")
 st.caption("Use este chat para inserir dados via texto, áudio ou upload.")
 
-extraction_agent, mapping_agent, audio_transcriber, user_profile_manager = load_stateless_components()
+extraction_agent, mapping_agent, audio_transcriber, memory_manager = load_stateless_components()
 
 # --- Gerenciamento de Estado ---
 # ESSENCIAL: Inicializa as variáveis de estado PENDING
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Olá! Informe os dados do pedido."}]
 if "short_term_memory" not in st.session_state:
-    st.session_state.short_term_memory = ConversationBufferMemory(memory_key="history", return_messages=False)
+    st.session_state.short_term_memory = ConversationBufferWindowMemory(
+        k=5,
+        memory_key="history", 
+        return_messages=False
+    )
 if "orchestrator" not in st.session_state:
     if extraction_agent and mapping_agent:
-        st.session_state.orchestrator = OrchestrationAgent(extraction_agent, mapping_agent, user_profile_manager)
+        st.session_state.orchestrator = OrchestrationAgent(extraction_agent, mapping_agent, memory_manager)
     else:
         st.session_state.orchestrator = None
 if 'run_id' not in st.session_state:
@@ -111,6 +116,50 @@ for message in st.session_state.messages:
 
 # --- Sidebar ---
 with st.sidebar:
+    st.divider()
+    st.header("🧠 Painel de Debug do Agente")
+    st.caption("Veja o estado interno do agente em tempo real.")
+
+    # Só mostra o painel se o orquestrador já foi inicializado
+    if "orchestrator" in st.session_state and st.session_state.orchestrator:
+        
+        # 1. Visualizador da Memória de Estado da Tarefa
+        with st.expander("📝 Estado do Orquestrador (Tarefa Atual)"):
+            # st.json exibe dicionários de forma interativa e bonita
+            st.json(st.session_state.orchestrator.get_state_dict())
+
+        # 2. Visualizador da Memória de Curto Prazo
+        with st.expander("💬 Memória de Curto Prazo (Conversa)"):
+            # Usamos um st.text_area para mostrar o buffer da conversa
+            memoria_curto_prazo = st.session_state.get("short_term_memory")
+            if memoria_curto_prazo and memoria_curto_prazo.buffer:
+                st.text_area(
+                    "Histórico (últimas k interações)", 
+                    value=memoria_curto_prazo.buffer_as_str, 
+                    height=200,
+                    disabled=True
+                )
+            else:
+                st.write("A memória de curto prazo está vazia.")
+
+        # 3. Visualizador da Memória de Longo Prazo
+        with st.expander("🗂️ Memória de Longo Prazo (Perfil do Usuário)"):
+            user_id = st.session_state.get("current_user_id", "default_user")
+            st.write(f"**Usuário Selecionado:** `{user_id}`")
+            
+            if st.button("Consultar Perfil no MongoDB"):
+                if memory_manager:
+                    profile = memory_manager.get_profile(user_id)
+                    if profile:
+                        st.write("Perfil encontrado:")
+                        st.json(profile)
+                    else:
+                        st.info("Nenhum perfil de longo prazo encontrado para este usuário.")
+                else:
+                    st.error("Gerenciador de memória não está disponível.")
+
+    else:
+        st.info("Aguardando inicialização do agente...")
     st.header("Seleção de Usuário (Didático)")
     # Para o exemplo, criamos uma seleção de usuários. Em um app real, seria um login.
     st.session_state.current_user_id = st.selectbox(
@@ -299,6 +348,8 @@ if input_to_process and input_source:
 
         # Mostra resposta do bot
         display_message = bot_message_content
+        is_terminal_status = status in ["completed", "aborted", "confirmed_for_creation", "error"]
+
         if status == "confirmed_for_creation":
              display_message = "Pedido confirmado! (Simulando criação de chamado)."
 
@@ -307,18 +358,24 @@ if input_to_process and input_source:
             st.markdown(resposta_formatada_md)
         st.session_state.messages.append({"role": "assistant", "content": display_message})
 
+        st.session_state.short_term_memory.save_context(
+            {"input": input_to_process}, 
+            {"output": bot_message_content}
+        )
+
         # Reset do estado para fluxos terminais
-        if status in ["completed", "aborted", "confirmed_for_creation", "error"]:
-             st.info(f"Processo finalizado (status: {status}). Pronto para novo pedido.")
-             if st.session_state.get("orchestrator"):
-                 st.session_state.orchestrator._reset_state_data()
-             st.session_state.pending_upload_data = None
-             st.session_state.pending_mic_data = None
-             st.session_state.pending_text_input = None
-             st.session_state.input_processed_flag = False
-             st.session_state.run_id += 1
-             logger.info(f"Estado resetado após status terminal: {status}. Forçando rerun.")
-             st.rerun()
+        if is_terminal_status:
+            st.info(f"Processo finalizado (status: {status}). Pronto para novo pedido.")
+            if st.session_state.get("orchestrator"):
+                st.session_state.orchestrator._reset_state_data()
+                st.session_state.short_term_memory.clear()
+            st.session_state.pending_upload_data = None
+            st.session_state.pending_mic_data = None
+            st.session_state.pending_text_input = None
+            st.session_state.input_processed_flag = False
+            st.session_state.run_id += 1
+            logger.info(f"Estado resetado após status terminal: {status}. Forçando rerun.")
+            st.rerun()
 
     else:
         error_msg = "Chatbot indisponível (erro de inicialização)."

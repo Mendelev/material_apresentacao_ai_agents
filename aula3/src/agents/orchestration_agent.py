@@ -8,7 +8,8 @@ from utils.formatting import format_cadencia, format_final_summary_text
 from utils.normalization import normalize_string
 from datetime import datetime
 from langchain.memory import ConversationBufferMemory
-from memory.user_profile_manager import UserProfileManager
+from memory.memory_manager import MemoryManager
+from agents.knowledge_agent import KnowledgeAgent
 
 logger = logging.getLogger(__name__)
 
@@ -17,11 +18,16 @@ class OrchestrationAgent:
     Orquestra o fluxo de extração, mapeamento, validação e interação
     com o usuário para processar um pedido.
     """
-    def __init__(self, extraction_agent: ExtractionAgent, mapping_agent: MappingAgent,profile_manager: UserProfileManager | None):
+    def __init__(self, extraction_agent: ExtractionAgent, mapping_agent: MappingAgent,memory_manager: MemoryManager | None):
         self.extraction_agent = extraction_agent
         self.mapping_agent = mapping_agent
-        self.profile_manager = profile_manager 
+        self.memory_manager = memory_manager 
         self._reset_state_data() # Inicializa o estado
+
+        if self.extraction_agent.llm and self.memory_manager:
+            self.knowledge_agent = KnowledgeAgent(self.extraction_agent.llm, self.memory_manager)
+        else:
+            self.knowledge_agent = None
 
         # Campos obrigatórios após o mapeamento inicial
         self.mandatory_fields_post_mapping = [
@@ -36,12 +42,60 @@ class OrchestrationAgent:
         ]
         logger.info("Agente Orquestrador inicializado (pronto para carregar estado).")
 
+    def _archive_successful_ticket(self, user_id: str):
+        if not self.memory_manager or not user_id:
+            return
+        
+        final_payload = self.state.get("pending_confirmation_payload")
+        if not final_payload:
+            return
+            
+        logger.info(f"Arquivando ticket confirmado para o usuário {user_id} no histórico.")
+        self.memory_manager.save_ticket_to_history(user_id, final_payload)
+    
+    def _classify_intent(self, user_text: str) -> str:
+        if self.state.get("last_question_context") or self.state.get("pending_confirmation") or self.state.get("pending_ambiguity"):
+            return 'CRIAR_TICKET'
+
+        prompt = f"""
+        Classifique a intenção do usuário com base na mensagem abaixo. As opções são:
+        - 'CRIAR_TICKET': O usuário está tentando iniciar, continuar ou fornecer dados para um novo pedido.
+        - 'PERGUNTA_SOBRE_A_CONVERSA': O usuário está fazendo uma pergunta sobre o diálogo atual.
+        - 'PERGUNTA_SOBRE_O_HISTORICO': O usuário está fazendo uma pergunta sobre pedidos ou informações passadas.
+        - 'CONVERSA_GERAL': O usuário está fazendo uma pergunta geral ou conversando sobre algo não relacionado a pedidos.
+
+        Exemplos:
+        - Mensagem: "Quero registrar 50 toneladas de FS Ouro" -> Intenção: CRIAR_TICKET
+        - Mensagem: "qual foi a primeira coisa que eu te disse?" -> Intenção: PERGUNTA_SOBRE_A_CONVERSA
+        - Mensagem: "qual o preço do último pedido que fiz para o cliente Acme?" -> Intenção: PERGUNTA_SOBRE_O_HISTORICO
+        - Mensagem: "Me ensine a fazer bolo de chocolate" -> Intenção: CONVERSA_GERAL
+        - Mensagem: "PDL" -> Intenção: CRIAR_TICKET (é uma resposta a uma pergunta)
+
+        ---
+        Mensagem do Usuário: "{user_text}"
+        ---
+
+        Intenção:
+        """
+        try:
+            response = self.extraction_agent.llm.invoke(prompt)
+            intent = (response.content if hasattr(response, 'content') else str(response)).strip().replace("'", "")
+            logger.info(f"Intenção detectada: '{intent}'")
+            # Adiciona uma verificação para garantir que a resposta é uma das opções válidas
+            valid_intents = ['CRIAR_TICKET', 'PERGUNTA_SOBRE_A_CONVERSA', 'PERGUNTA_SOBRE_O_HISTORICO', 'CONVERSA_GERAL']
+            if intent in valid_intents:
+                return intent
+            return 'CRIAR_TICKET' # Fallback se o LLM responder algo inesperado
+        except Exception as e:
+            logger.error(f"Erro ao classificar intenção: {e}")
+            return 'CRIAR_TICKET'
+
     def _pre_fill_from_profile(self, user_id: str):
         """Pré-preenche dados do perfil do usuário."""
-        if not self.profile_manager or not user_id:
+        if not self.memory_manager or not user_id:
             return
 
-        profile = self.profile_manager.get_profile(user_id)
+        profile = self.memory_manager.get_profile(user_id)
         if not profile:
             return
 
@@ -74,7 +128,7 @@ class OrchestrationAgent:
 
     def _update_profile_from_ticket(self, user_id: str):
         """Atualiza o perfil do usuário com dados do ticket concluído."""
-        if not self.profile_manager or not user_id:
+        if not self.memory_manager or not user_id:
             return
         
         final_data = self.state.get("pending_confirmation_payload", {})
@@ -89,7 +143,7 @@ class OrchestrationAgent:
         
         if profile_update:
             logger.info(f"Atualizando perfil de '{user_id}' com dados do ticket: {profile_update}")
-            self.profile_manager.update_profile(user_id, profile_update)
+            self.memory_manager.update_profile(user_id, profile_update)
 
     def load_state(self, state_data: dict):
         """Carrega um estado previamente salvo."""
@@ -200,9 +254,8 @@ class OrchestrationAgent:
     # --- Métodos de Lógica Principal ---
 
     def _handle_confirmation_response(self, user_text: str, user_id: str, short_term_memory: ConversationBufferMemory) -> dict | None:
-        """Processa a resposta do usuário quando estava pendente de confirmação."""
         if not (self.state.get("pending_confirmation") and self.state.get("last_question_context") == "confirmation_response"):
-            return None # Não estava esperando confirmação
+            return None
 
         logger.info("Processando resposta no estado 'pending_confirmation'.")
         response_norm = normalize_string(user_text)
@@ -211,13 +264,13 @@ class OrchestrationAgent:
 
         if response_norm in confirmation_keywords:
             self._update_profile_from_ticket(user_id)
-            return self._format_confirmed_for_creation() # Retorna status e payload para criação
+            self._archive_successful_ticket(user_id) # NOVO: Arquiva o ticket
+            return self._format_confirmed_for_creation()
 
         elif response_norm in cancel_keywords:
             return self._format_abort()
 
         else:
-            # Tratar como EDIÇÃO
             return self._handle_user_edit(user_text, short_term_memory=short_term_memory)
 
     def _handle_user_edit(self, user_text: str, short_term_memory: ConversationBufferMemory) -> dict:
@@ -232,11 +285,14 @@ class OrchestrationAgent:
         # Prepara instrução de edição para o LLM
         original_data_summary_str = json.dumps(original_payload, ensure_ascii=False, indent=None) # Sem indentação para prompt
         edit_instruction = (
-            f"ATENÇÃO: O usuário está CORRIGINDO/EDITANDO os dados que foram apresentados a ele. "
-            f"Os dados apresentados foram (aproximadamente): {original_data_summary_str}. "
-            f"Analise a CORREÇÃO fornecida pelo usuário no 'Input do Usuário' abaixo. "
-            f"Sua tarefa é extrair APENAS os campos que o usuário está explicitamente tentando alterar ou adicionar, com seus NOVOS valores. "
-            f"Retorne um JSON contendo SOMENTE os campos corrigidos/adicionados. Ignore campos dos dados originais que não foram mencionados na correção atual."
+            "ATENÇÃO: A tarefa é extrair uma correção do usuário para um campo de formulário e retornar um JSON. "
+            "Analise a frase do usuário e retorne um objeto JSON contendo APENAS o campo corrigido e seu novo valor. "
+            "Seja literal e não adicione campos que não foram mencionados na correção."
+            "\n\n### EXEMPLOS ###"
+            "\n- Input do Usuário: 'O valor na verdade é 2300'\n- JSON de Saída: {\"Valor\": 2300}"
+            "\n- Input do Usuário: 'arruma a cidade pra Cuiabá'\n- JSON de Saída: {\"Cidade\": \"Cuiabá\"}"
+            "\n- Input do Usuário: 'não, o cnpj é 123456'\n- JSON de Saída: {\"CNPJ/CPF\": \"123456\"}"
+            "\n\nNÃO inclua nenhuma explicação, comentário ou texto adicional. Retorne APENAS o JSON."
         )
 
         logger.debug(f"Chamando ExtractionAgent para EDIÇÃO. Texto: '{user_text}'")
@@ -720,6 +776,25 @@ class OrchestrationAgent:
         logger.info(f"Texto do Usuário: '{user_text}'")
         self.state["current_original_input_text"] = user_text
         logger.debug(f"Estado ANTES do processamento (current_original_input_text SET): {json.dumps(self.state, indent=2, ensure_ascii=False)}")
+
+        # PASSO 0: CLASSIFICAR INTENÇÃO
+        intent = self._classify_intent(user_text)
+
+        # Se a intenção for responder uma pergunta, delegue ao KnowledgeAgent
+        if intent in ['PERGUNTA_SOBRE_A_CONVERSA', 'PERGUNTA_SOBRE_O_HISTORICO', 'CONVERSA_GERAL']:
+            if self.knowledge_agent:
+                answer = self.knowledge_agent.answer_question(
+                    user_id=user_id,
+                    question=user_text,
+                    intent=intent,
+                    chat_history=short_term_memory.buffer_as_str
+                )
+                return {"status": "answered", "message": answer}
+            else:
+                return {"status": "error", "message": "Desculpe, a função de responder perguntas não está disponível no momento."}
+
+        # Se a intenção for CRIAR_TICKET, prossiga com o fluxo original
+        self.state["current_original_input_text"] = user_text
 
 
         # --- PASSO 0: TRATAR RESPOSTAS PENDENTES PRIMEIRO ---
