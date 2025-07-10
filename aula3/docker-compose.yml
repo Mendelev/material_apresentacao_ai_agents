@@ -1,0 +1,31 @@
+# docker-compose.yml
+
+services:
+  # Nome do serviço, pode ser qualquer um. 'mongo' é uma convenção.
+  mongo:
+    # Usa a imagem oficial mais recente do MongoDB.
+    # Para produção, é recomendado fixar uma versão, ex: mongo:7.0
+    image: mongo:latest
+    
+    # Nome do contêiner para fácil identificação (opcional, mas útil).
+    container_name: mongo-agent-memory
+    
+    # Mapeamento de portas. Formato: "PORTA_NO_SEU_PC:PORTA_NO_CONTAINER"
+    # Mapeia a porta 27019 da sua máquina para a porta padrão 27017 do MongoDB dentro do contêiner.
+    ports:
+      - "27019:27017"
+      
+    # Volumes para persistência de dados.
+    # Mapeia o volume nomeado 'mongodata' para o diretório de dados padrão do MongoDB.
+    # Isso garante que os dados da sua memória de longo prazo não sejam perdidos.
+    volumes:
+      - mongodata:/data/db
+      
+    # Garante que o contêiner reinicie automaticamente se ele parar por algum motivo.
+    restart: always
+
+# Define os volumes nomeados que serão gerenciados pelo Docker.
+volumes:
+  mongodata:
+    # O driver 'local' é o padrão. Nenhuma configuração extra é necessária aqui.
+    driver: local

@@ -4,6 +4,8 @@ import sys
 import time
 import logging
 from streamlit_mic_recorder import mic_recorder
+from langchain.memory import ConversationBufferMemory
+from memory.user_profile_manager import UserProfileManager
 
 logger = logging.getLogger(__name__) 
 logging.basicConfig(
@@ -27,7 +29,6 @@ except ImportError as e:
 # --- Cache ---
 @st.cache_resource
 def load_stateless_components():
-    # ... (código existente para carregar extraction, mapping, transcriber) ...
     print("--- Carregando Agente de Extração (cacheado) ---")
     extraction_agent = None
     try:
@@ -54,22 +55,36 @@ def load_stateless_components():
     except Exception as e:
         st.error(f"Falha ao carregar AudioTranscriber: {e}")
 
-    return extraction_agent, mapping_agent, audio_transcriber
+    print("--- Carregando Gerenciador de Perfis (cacheado) ---")
+    user_profile_manager = None
+    try:
+        # Adicione MONGO_CONNECTION_STRING ao seu .env
+        mongo_uri = config.MONGO_CONNECTION_STRING 
+        if mongo_uri:
+            user_profile_manager = UserProfileManager(mongo_uri)
+        else:
+            st.warning("MONGO_CONNECTION_STRING não configurada. Memória de Longo Prazo desabilitada.")
+    except Exception as e:
+        st.error(f"Falha ao carregar UserProfileManager: {e}")
+
+    return extraction_agent, mapping_agent, audio_transcriber, user_profile_manager
 
 # --- Inicialização do App ---
 st.set_page_config(page_title="Chatbot de Pedidos", layout="wide")
 st.title("🤖 Chatbot de Processamento de Pedidos")
 st.caption("Use este chat para inserir dados via texto, áudio ou upload.")
 
-extraction_agent, mapping_agent, audio_transcriber = load_stateless_components()
+extraction_agent, mapping_agent, audio_transcriber, user_profile_manager = load_stateless_components()
 
 # --- Gerenciamento de Estado ---
 # ESSENCIAL: Inicializa as variáveis de estado PENDING
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": "Olá! Informe os dados do pedido."}]
+if "short_term_memory" not in st.session_state:
+    st.session_state.short_term_memory = ConversationBufferMemory(memory_key="history", return_messages=False)
 if "orchestrator" not in st.session_state:
     if extraction_agent and mapping_agent:
-        st.session_state.orchestrator = OrchestrationAgent(extraction_agent, mapping_agent)
+        st.session_state.orchestrator = OrchestrationAgent(extraction_agent, mapping_agent, user_profile_manager)
     else:
         st.session_state.orchestrator = None
 if 'run_id' not in st.session_state:
@@ -84,6 +99,8 @@ if 'pending_text_input' not in st.session_state:
 # Flag para indicar se o processamento ocorreu nesta execução
 if 'input_processed_flag' not in st.session_state:
     st.session_state.input_processed_flag = False
+if 'current_user_id' not in st.session_state:
+    st.session_state.current_user_id = "default_user" # Usuário padrão
 
 
 # --- Exibição do Histórico ---
@@ -94,8 +111,14 @@ for message in st.session_state.messages:
 
 # --- Sidebar ---
 with st.sidebar:
+    st.header("Seleção de Usuário (Didático)")
+    # Para o exemplo, criamos uma seleção de usuários. Em um app real, seria um login.
+    st.session_state.current_user_id = st.selectbox(
+        "Selecione o Usuário",
+        options=["herculano_franco", "maria_silva", "default_user"],
+        key=f"user_select_{st.session_state.run_id}"
+    )
     st.header("Instruções")
-    # ... (markdown das instruções) ...
     st.markdown("""
         1.  **Insira os Dados:**
             *   Digite na caixa abaixo.
@@ -118,6 +141,7 @@ with st.sidebar:
         st.session_state.input_processed_flag = False
         st.session_state.run_id += 1
         print("--- Estado resetado via botão ---")
+        st.session_state.short_term_memory.clear()
         st.rerun()
 
     st.divider()
@@ -251,8 +275,18 @@ if input_to_process and input_source:
         # -------------------------------------------------------------------------
         with st.spinner("Processando..."):
             try:
-                response = st.session_state.orchestrator.process_user_input(input_to_process)
+                response = st.session_state.orchestrator.process_user_input(
+                    user_text=input_to_process, 
+                    short_term_memory=st.session_state.short_term_memory, # Passa a memória
+                    user_id=st.session_state.current_user_id,
+                )
                 bot_message_content = response.get('message', "Desculpe, ocorreu um erro interno.")
+                # ATUALIZA A MEMÓRIA DE CURTO PRAZO
+                st.session_state.short_term_memory.save_context(
+                    {"input": input_to_process}, 
+                    {"output": bot_message_content}
+                )
+                logger.debug(f"Memória de Curto Prazo Atualizada. Conteúdo:\n{st.session_state.short_term_memory.buffer}")
                 status = response.get("status", "error")
                 # --- DEBUG ADICIONAL: Logar estado DEPOIS de chamar process_user_input ---
                 logger.debug(f"Orchestrator state DEPOIS de processar '{input_source}': {st.session_state.orchestrator.get_state_dict()}")

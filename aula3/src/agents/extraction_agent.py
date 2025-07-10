@@ -6,6 +6,7 @@ import warnings
 from langchain_openai import OpenAI as OpenAIStandard
 from langchain_openai import AzureOpenAI            # Para OpenAI legada (gpt-3.5-turbo-instruct)
 from langchain_google_genai import ChatGoogleGenerativeAI # Para Gemini
+from langchain.memory import ConversationBufferMemory
 # from langchain_openai import ChatOpenAI # Se fosse usar modelos de chat da OpenAI como gpt-3.5-turbo
 
 import logging
@@ -135,7 +136,7 @@ class ExtractionAgent:
 
         logger.info(f"--- DEBUG ANTES LLMChain: Tipo de self.llm: {type(self.llm)} ao carregar prompt ---")
         self.extraction_prompt = PromptTemplate(
-            input_variables=["input_text", "context_instruction"],
+            input_variables=["history", "input_text", "context_instruction"],
             template=prompt_template_string
         )
 
@@ -265,16 +266,16 @@ class ExtractionAgent:
         logger.debug(f"LLM chain invocado com sucesso. Tipo da Resposta: {type(response)}")
         return response
 
-    def extract(self, text: str, context_fields: list[str] = None, custom_instruction: str = None) -> dict | None:
+    def extract(self, text: str, memory: ConversationBufferMemory, context_fields: list[str] = None, custom_instruction: str = None) -> dict | None:
         logger.debug(f"Texto para extração (repr): {repr(text)}")
         context_instruction = self._generate_context_instruction(context_fields, custom_instruction)
-        input_payload = {
-            'input_text': text,
-            'context_instruction': context_instruction
-        }
 
         try:
-            response = self._invoke_llm_chain_with_retry(input_payload)
+            response = self.extraction_chain.invoke({
+                'input_text': text,
+                'context_instruction': context_instruction,
+                'history': memory.buffer_as_str
+            })
             
             if isinstance(response, dict):
                 result_text = response.get('text', '')

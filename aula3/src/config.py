@@ -26,3 +26,5 @@ AZURE_OPENAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT") # Ex: "https://your-r
 AZURE_OPENAI_DEPLOYMENT_NAME = os.getenv("AZURE_OPENAI_DEPLOYMENT_NAME") # O nome da SUA implantação do gpt-3.5-turbo-instruct
 AZURE_MODEL_NAME = os.getenv("AZURE_MODEL_NAME") # O nome do modelo a ser usado no Azure OpenAI
 AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION") # A API version correta, ex: "2024-02-15-preview"
+
+MONGO_CONNECTION_STRING = os.getenv("MONGO_CONNECTION_STRING", "mongodb://localhost:27017/") # Conexão padrão do MongoDB

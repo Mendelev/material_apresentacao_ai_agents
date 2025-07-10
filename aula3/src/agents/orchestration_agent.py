@@ -7,6 +7,8 @@ from agents.mapping_agent import MappingAgent
 from utils.formatting import format_cadencia, format_final_summary_text
 from utils.normalization import normalize_string
 from datetime import datetime
+from langchain.memory import ConversationBufferMemory
+from memory.user_profile_manager import UserProfileManager
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +17,10 @@ class OrchestrationAgent:
     Orquestra o fluxo de extração, mapeamento, validação e interação
     com o usuário para processar um pedido.
     """
-    def __init__(self, extraction_agent: ExtractionAgent, mapping_agent: MappingAgent):
+    def __init__(self, extraction_agent: ExtractionAgent, mapping_agent: MappingAgent,profile_manager: UserProfileManager | None):
         self.extraction_agent = extraction_agent
         self.mapping_agent = mapping_agent
+        self.profile_manager = profile_manager 
         self._reset_state_data() # Inicializa o estado
 
         # Campos obrigatórios após o mapeamento inicial
@@ -33,6 +36,27 @@ class OrchestrationAgent:
         ]
         logger.info("Agente Orquestrador inicializado (pronto para carregar estado).")
 
+    def _pre_fill_from_profile(self, user_id: str):
+        """Pré-preenche dados do perfil do usuário."""
+        if not self.profile_manager or not user_id:
+            return
+
+        profile = self.profile_manager.get_profile(user_id)
+        if not profile:
+            return
+
+        logger.info(f"Perfil encontrado para '{user_id}'. Pré-preenchendo dados.")
+        # Exemplo: pré-preencher a planta se não houver uma no pedido atual
+        if "Planta" not in self.state["request_data"] or not self.state["request_data"]["Planta"]:
+            if profile.get("common_plant"):
+                self.state["request_data"]["Planta"] = profile["common_plant"]
+                logger.info(f"Planta pré-preenchida com '{profile['common_plant']}' do perfil.")
+        
+        # Exemplo: pré-preencher o vendedor com o nome do perfil
+        if "Vendedor" not in self.state["request_data"] or not self.state["request_data"]["Vendedor"]:
+            if profile.get("full_name"):
+                 self.state["request_data"]["Vendedor"] = profile["full_name"]
+
     # --- Métodos de Gerenciamento de Estado ---
     def _reset_state_data(self):
         """Reseta o estado interno para um novo pedido."""
@@ -47,6 +71,25 @@ class OrchestrationAgent:
             "current_original_input_text": None
         }
         logger.debug("Estrutura de estado resetada para o padrão.")
+
+    def _update_profile_from_ticket(self, user_id: str):
+        """Atualiza o perfil do usuário com dados do ticket concluído."""
+        if not self.profile_manager or not user_id:
+            return
+        
+        final_data = self.state.get("pending_confirmation_payload", {})
+        if not final_data:
+            return
+
+        profile_update = {}
+        if final_data.get("Planta"):
+            profile_update["common_plant"] = final_data["Planta"]
+        if final_data.get("Nome do cliente"):
+            profile_update["last_client_name"] = final_data["Nome do cliente"]
+        
+        if profile_update:
+            logger.info(f"Atualizando perfil de '{user_id}' com dados do ticket: {profile_update}")
+            self.profile_manager.update_profile(user_id, profile_update)
 
     def load_state(self, state_data: dict):
         """Carrega um estado previamente salvo."""
@@ -156,7 +199,7 @@ class OrchestrationAgent:
 
     # --- Métodos de Lógica Principal ---
 
-    def _handle_confirmation_response(self, user_text: str) -> dict | None:
+    def _handle_confirmation_response(self, user_text: str, user_id: str, short_term_memory: ConversationBufferMemory) -> dict | None:
         """Processa a resposta do usuário quando estava pendente de confirmação."""
         if not (self.state.get("pending_confirmation") and self.state.get("last_question_context") == "confirmation_response"):
             return None # Não estava esperando confirmação
@@ -167,6 +210,7 @@ class OrchestrationAgent:
         cancel_keywords = ["nao", "n", "no", "incorreto", "cancelar"]
 
         if response_norm in confirmation_keywords:
+            self._update_profile_from_ticket(user_id)
             return self._format_confirmed_for_creation() # Retorna status e payload para criação
 
         elif response_norm in cancel_keywords:
@@ -174,9 +218,9 @@ class OrchestrationAgent:
 
         else:
             # Tratar como EDIÇÃO
-            return self._handle_user_edit(user_text)
+            return self._handle_user_edit(user_text, short_term_memory=short_term_memory)
 
-    def _handle_user_edit(self, user_text: str) -> dict:
+    def _handle_user_edit(self, user_text: str, short_term_memory: ConversationBufferMemory) -> dict:
         """Processa a entrada do usuário como uma tentativa de edição dos dados do resumo."""
         logger.info(f"Resposta '{user_text}' não é confirmação/cancelamento. Tratando como EDIÇÃO.")
         original_payload = self.state.get("pending_confirmation_payload")
@@ -196,7 +240,11 @@ class OrchestrationAgent:
         )
 
         logger.debug(f"Chamando ExtractionAgent para EDIÇÃO. Texto: '{user_text}'")
-        extracted_edit_data = self.extraction_agent.extract(user_text, custom_instruction=edit_instruction)
+        extracted_edit_data = self.extraction_agent.extract(
+            user_text,
+            memory=short_term_memory, # << Adicionado
+            custom_instruction=edit_instruction
+        )
 
         if extracted_edit_data:
             logger.info(f"Dados extraídos da edição: {json.dumps(extracted_edit_data, indent=2, ensure_ascii=False)}")
@@ -661,11 +709,13 @@ class OrchestrationAgent:
 
 
     # --- Método Principal de Processamento ---
-    def process_user_input(self, user_text: str, metadata: dict = None) -> dict:
+    def process_user_input(self, user_text: str, short_term_memory: ConversationBufferMemory, user_id: str,metadata: dict = None) -> dict:
         """
         Processa a entrada do usuário, gerenciando o estado da conversa,
         extração, mapeamento e validação. Prioriza respostas a perguntas pendentes.
         """
+        if not self.state.get("request_data"):
+            self._pre_fill_from_profile(user_id)
         logger.info(f"--- Ciclo Orquestrador: Processando Input ---")
         logger.info(f"Texto do Usuário: '{user_text}'")
         self.state["current_original_input_text"] = user_text
@@ -675,7 +725,11 @@ class OrchestrationAgent:
         # --- PASSO 0: TRATAR RESPOSTAS PENDENTES PRIMEIRO ---
         if self.state.get("pending_confirmation") and self.state.get("last_question_context") == "confirmation_response":
             logger.info(">>> Estado é 'pending_confirmation'. Chamando _handle_confirmation_response.")
-            confirmation_result = self._handle_confirmation_response(user_text) # user_text aqui é Sim/Não/Correção
+            confirmation_result = self._handle_confirmation_response(
+                user_text, 
+                user_id=user_id,
+                short_term_memory=short_term_memory # << Adicionado
+            ) # user_text aqui é Sim/Não/Correção
             # Se for correção, current_original_input_text será o texto da correção, que é o esperado por _handle_user_edit
             if confirmation_result:
                 return confirmation_result
@@ -701,7 +755,11 @@ class OrchestrationAgent:
         # --- PASSO 1: EXTRAÇÃO (Só executa se não for resposta a confirmação/ambiguidade) ---
         logger.info(">>> Input não é confirmação/ambiguidade direta. Iniciando extração normal.")
         last_asked = self.state.get("last_asked_fields")
-        extracted_data = self.extraction_agent.extract(user_text, context_fields=last_asked)
+        extracted_data = self.extraction_agent.extract(
+            user_text, 
+            memory=short_term_memory, # Passa a memória
+            context_fields=last_asked
+        )
 
         # --- Tratamento de Falha na Extração (mantém a lógica atual) ---
         if extracted_data is None:

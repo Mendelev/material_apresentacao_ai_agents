@@ -4,12 +4,16 @@ from datetime import datetime
 import sys
 import os
 import re # Para extrair partes da mensagem
+from langchain.memory import ConversationBufferMemory
 
 # Adiciona o diretório raiz ao sys.path para encontrar os módulos em 'src' ou similar
 # Ajuste o caminho se a estrutura do seu projeto for diferente
 script_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(script_dir, '..')) # Assume que 'tests' está no mesmo nível que 'agents', 'utils', etc.
 sys.path.insert(0, project_root)
+
+short_term_memory = ConversationBufferMemory(memory_key="history", return_messages=False)
+user_id="1"
 
 # Importa os novos agentes e configurações
 try:
@@ -33,6 +37,7 @@ class TestRegression(unittest.TestCase):
             # para o ambiente de teste, se necessário.
             cls.extraction_agent = ExtractionAgent()
             cls.mapping_agent = MappingAgent(artifacts_dir=config.ARTIFACTS_DIR)
+            cls.profile_manager = None # Inicializa sem o gerenciador de perfis
             if not cls.mapping_agent.data_loaded_successfully:
                  print("AVISO: Dados de mapeamento não carregados.")
         except Exception as e:
@@ -43,7 +48,7 @@ class TestRegression(unittest.TestCase):
     def setUp(self):
         """Configura o necessário antes de cada teste individual."""
         # Cria uma NOVA instância do Orquestrador para cada teste, garantindo estado limpo
-        self.orchestrator = OrchestrationAgent(self.extraction_agent, self.mapping_agent)
+        self.orchestrator = OrchestrationAgent(self.extraction_agent, self.mapping_agent, self.profile_manager)
         self.hoje = datetime.now().strftime("%d/%m/%Y")
         print(f"\n--- Iniciando Teste: {self.id()} ---")
 
@@ -97,7 +102,7 @@ class TestRegression(unittest.TestCase):
         for i, user_input in enumerate(inputs):
             print(f"  Processando input {i+1}/{len(inputs)}: '{user_input[:50]}...'")
             # Chama o orquestrador da instância de teste
-            response_dict = self.orchestrator.process_user_input(user_input)
+            response_dict = self.orchestrator.process_user_input(user_text=user_input,short_term_memory=short_term_memory, user_id=user_id)
             last_response_dict = response_dict
             final_message = response_dict.get("message", "ERRO: Mensagem não encontrada na resposta")
             status = response_dict.get("status")
